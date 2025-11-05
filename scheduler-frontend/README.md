@@ -1,70 +1,167 @@
-# Getting Started with Create React App
+# SlotSwapper
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+SlotSwapper is a peer-to-peer time-slot trading application.  
+Users create events in their schedule and mark them as **swappable**.  
+Other users can view available swap-offers and request to exchange one of their own swappable slots for another user’s slot.
 
-## Available Scripts
+The receiving user can **accept** or **reject**. If accepted → ownership of both slots is exchanged.
 
-In the project directory, you can run:
+This project demonstrates:
 
-### `npm start`
+- Full-stack architecture (React + FastAPI + PostgreSQL)
+- JWT Authentication & protected APIs
+- State management and dynamic UI updates
+- Real-time notifications using WebSockets
+- Clean business logic for event swap transactions
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+---
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Tech Stack
 
-### `npm test`
+| Layer | Technology |
+|------|------------|
+| Frontend | React |
+| Backend | FastAPI (Python) |
+| Database | PostgreSQL |
+| Authentication | JWT Bearer Tokens |
+| Realtime Notifications | WebSockets |
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+---
 
-### `npm run build`
+## Project Structure
+```
+SlotSwapper/
+│
+├── scheduler-backend/            # FastAPI backend
+│   ├── app/
+│   │   ├── main.py               # Entry point for FastAPI
+│   │   ├── models.py             # SQLAlchemy models
+│   │   ├── schemas.py            # Pydantic schemas
+│   │   ├── auth.py               # Authentication & JWT logic
+│   │   ├── database.py           # Database connection setup
+│   │   └── ws_manager.py         # WebSocket manager for real-time updates
+│   └── requirements.txt          # Python dependencies
+│
+└── scheduler-frontend/           # React frontend
+    └── src/
+        └── App.js                # Main React component
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+---
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Setup Instructions (Important)
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### 1. Clone Repository
 
-### `npm run eject`
+```sh
+git clone https://github.com/ParidhiShrivastava0406/SlotSwapper.git
+cd SlotSwapper
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### 2. Backend Setup (FastAPI)
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```sh
+cd scheduler-backend
+python -m venv venv
+venv\Scripts\activate
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+- Install dependencies:
+  pip install -r requirements.txt
+- Create .env file:
+  DATABASE_URL=""
+- Run backend:
+  
+```sh
+uvicorn app.main:app --reload
+```
+Backend runs at → http://127.0.0.1:8000
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### 3. Frontend Setup (React)
 
-## Learn More
+```sh
+cd ../scheduler-frontend
+npm install
+npm start
+```
+Frontend runs at → http://localhost:3000
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+---
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## API Endpoints
 
-### Code Splitting
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+### **Authentication**
 
-### Analyzing the Bundle Size
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST   | `/signup/` | Create a new user |
+| POST   | `/login/`  | Login and receive an authentication token |
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+---
 
-### Making a Progressive Web App
+### **Events**
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST   | `/events/` | Create a new event |
+| GET    | `/events/my` | Get events of the logged-in user |
+| PATCH  | `/events/{event_id}/status` | Mark an event as **SWAPPABLE** |
+| DELETE | `/events/{event_id}` | Delete own event |
 
-### Advanced Configuration
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+### **Marketplace**
 
-### Deployment
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET    | `/swappable-slots` | View swappable events created by other users |
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+---
 
-### `npm run build` fails to minify
+### **Swap Operations**
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST   | `/swap-request` | Request a swap (requires `mySlot` + `theirSlot`) |
+| GET    | `/swap-requests/incoming` | View swap requests **you need to respond to** |
+| GET    | `/swap-requests/outgoing` | View swap requests **you have sent** |
+| POST   | `/swap-response` | Accept or reject a swap request |
+
+---
+
+## Design Decisions
+
+- Implemented event states: **BUSY**, **SWAPPABLE**, and **SWAP_PENDING** to maintain clear event lifecycle and avoid conflicts.
+- All swap ownership logic is handled **securely on the backend** to prevent unauthorized modifications.
+- **WebSockets** are used to send real-time updates, ensuring users see changes instantly **without needing to refresh**.
+
+---
+
+## Assumptions
+
+- The system **does not currently validate overlapping events**.
+- Only **direct 1-to-1 event swaps** are supported at this stage.
+- **Only authenticated (logged-in) users** can create, view, or swap events.
+
+---
+
+## Challenges Faced
+
+- Ensuring correct and consistent **state transitions** during swap operations.
+- Keeping the **UI synced in real-time** without manual refresh.
+- Managing **secure authentication for WebSocket connections**.
+
+---
+
+## Future Improvements
+
+- Replace table-based display with a **full interactive calendar UI**.
+- Add **email or mobile push notifications** for swap requests/updates.
+- **Deploy to cloud platforms** like Render, Railway, or Vercel for production use.
+
+
+
+
+  
